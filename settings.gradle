@@ -1,0 +1,2 @@
+rootProject.name='RevealAnimationDemo'
+include ':app'
