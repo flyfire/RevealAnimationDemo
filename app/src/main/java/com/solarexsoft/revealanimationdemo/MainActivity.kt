@@ -3,6 +3,7 @@ package com.solarexsoft.revealanimationdemo
 import android.animation.Animator
 import android.graphics.Point
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.math.hypot
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        const val TAG = "MainActivity"
+    }
     var toOpen = true
     lateinit var fab: FloatingActionButton
     lateinit var vp: ViewPager2
@@ -68,6 +72,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onAnimationEnd(animation: Animator?) {
+                    Log.d(TAG, "onAnimationEnd called")
                     adapter.notifyItemChanged(vp.currentItem)
                 }
 
