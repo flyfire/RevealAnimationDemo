@@ -16,6 +16,7 @@ class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view) {
         val tv = view.findViewById<TextView>(R.id.tv)
         tv.text = "$position"
         AnimationUtils.loadAnimation(view.context, R.anim.bottom_up).apply {
+            duration = 500
             tv.startAnimation(this)
         }
     }
