@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     var toOpen = true
     lateinit var fab: FloatingActionButton
     lateinit var vp: ViewPager2
+    lateinit var adapter: ItemPagerAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -24,7 +25,7 @@ class MainActivity : AppCompatActivity() {
             openOrCloseViewPager(toOpen)
             toOpen = !toOpen
         }
-        val adapter = ItemPagerAdapter()
+        adapter = ItemPagerAdapter()
         vp.adapter = adapter
         vp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         var isFirstPage = false
@@ -46,28 +47,43 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (isFirstPage && isDragging && positionOffsetPixels == 0) {
                     openOrCloseViewPager(false)
+                    toOpen = true
                 }
             }
         })
     }
 
     fun openOrCloseViewPager(toOpen: Boolean) {
-        val fabLoc = IntArray(2)
-        fab.getLocationInWindow(fabLoc)
-        val centerX = fabLoc[0] + fab.width/2;
-        val centerY = fabLoc[1] + fab.height/2;
+        val centerX = fab.x + fab.width/2;
+        val centerY = fab.y + fab.height/2;
         val point = Point()
         windowManager.defaultDisplay.getSize(point)
         val width = point.x
         val height = point.y/2
         val hypot = hypot(width.toDouble(), height.toDouble())
         if (toOpen) {
-            val animator = ViewAnimationUtils.createCircularReveal(vp, centerX, centerY, 0.0f, hypot.toFloat())
-            animator.duration = 2000
+            val animator = ViewAnimationUtils.createCircularReveal(vp, centerX.toInt(), centerY.toInt(), 0.0f, hypot.toFloat())
+            animator.addListener(object : Animator.AnimatorListener{
+                override fun onAnimationRepeat(animation: Animator?) {
+                }
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    adapter.notifyItemChanged(vp.currentItem)
+                }
+
+                override fun onAnimationCancel(animation: Animator?) {
+                }
+
+                override fun onAnimationStart(animation: Animator?) {
+                }
+
+            })
+            animator.duration = 1000
             vp.visibility = View.VISIBLE
             animator.start()
         } else {
-            val animator = ViewAnimationUtils.createCircularReveal(vp, centerX, centerY, hypot.toFloat(), 0.0f)
+            val animator = ViewAnimationUtils.createCircularReveal(vp, centerX.toInt(), centerY.toInt(), hypot.toFloat(), 0.0f)
+            animator.duration = 1000
             animator.addListener(object : Animator.AnimatorListener{
                 override fun onAnimationRepeat(animation: Animator?) {
                 }
