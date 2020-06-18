@@ -38,10 +38,12 @@ class MainActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) {
                 adapter.notifyItemChanged(position)
                 isFirstPage = position == 0
+                Log.d(TAG, "onPageSelected $position")
             }
 
             override fun onPageScrollStateChanged(state: Int) {
                 isDragging = ViewPager2.SCROLL_STATE_DRAGGING == state
+                Log.d(TAG, "onPageScrollStateChanged $state")
             }
 
             override fun onPageScrolled(
@@ -53,6 +55,7 @@ class MainActivity : AppCompatActivity() {
                     openOrCloseViewPager(false)
                     toOpen = true
                 }
+                Log.d(TAG, "onPageScrolled $position $positionOffset $positionOffsetPixels")
             }
         })
     }
