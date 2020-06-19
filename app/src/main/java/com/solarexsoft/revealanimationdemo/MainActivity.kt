@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         vp.offscreenPageLimit = 3
     }
 
-    fun notifyPageChanged(position: Int) {
+    private fun notifyPageChanged(position: Int) {
         if (lastPosition != position) {
             Log.d(TAG, "last position = $lastPosition")
             lastPosition = position
@@ -68,7 +68,6 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         val recyclerView = rvField.get(vp) as RecyclerView
         val holder =
             recyclerView.findViewHolderForAdapterPosition(position)
-        (holder as ItemPageViewHolder).onPageSelected()
     }
 
     fun openOrCloseViewPager(toOpen: Boolean) {
