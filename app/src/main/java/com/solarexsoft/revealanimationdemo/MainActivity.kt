@@ -7,12 +7,13 @@ import android.util.Log
 import android.view.View
 import android.view.ViewAnimationUtils
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.math.hypot
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PageChangeListener {
     companion object {
         const val TAG = "MainActivity"
     }
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var fab: FloatingActionButton
     lateinit var vp: ViewPager2
     lateinit var adapter: ItemPagerAdapter
+    var lastPosition = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -29,35 +31,44 @@ class MainActivity : AppCompatActivity() {
             openOrCloseViewPager(toOpen)
             toOpen = !toOpen
         }
-        adapter = ItemPagerAdapter()
+
+        val rvField = vp::class.java.getDeclaredField("mRecyclerView")
+        rvField.isAccessible = true
+        val recyclerView = rvField.get(vp) as RecyclerView
+        recyclerView.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+            override fun onChildViewDetachedFromWindow(view: View) {
+                val position = recyclerView.getChildAdapterPosition(view)
+                Log.d(TAG, "child view detached $position $view")
+            }
+
+            override fun onChildViewAttachedToWindow(view: View) {
+                val position = recyclerView.getChildAdapterPosition(view)
+                Log.d(TAG, "child view attached $position $view")
+            }
+
+        })
+        val pageChangeCallback = OnPageChangeListener(this)
+        vp.registerOnPageChangeCallback(pageChangeCallback)
+        adapter = ItemPagerAdapter(pageChangeCallback)
         vp.adapter = adapter
         vp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-        var isFirstPage = false
-        var isDragging = false
-        vp.registerOnPageChangeCallback(object : OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                adapter.notifyItemChanged(position)
-                isFirstPage = position == 0
-                Log.d(TAG, "onPageSelected $position")
-            }
+        vp.offscreenPageLimit = 3
+    }
 
-            override fun onPageScrollStateChanged(state: Int) {
-                isDragging = ViewPager2.SCROLL_STATE_DRAGGING == state
-                Log.d(TAG, "onPageScrollStateChanged $state")
-            }
+    fun notifyPageChanged(position: Int) {
+        if (lastPosition != position) {
+            Log.d(TAG, "last position = $lastPosition")
+            lastPosition = position
+        }
+    }
 
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
-            ) {
-                if (isFirstPage && isDragging && positionOffsetPixels == 0) {
-                    openOrCloseViewPager(false)
-                    toOpen = true
-                }
-                Log.d(TAG, "onPageScrolled $position $positionOffset $positionOffsetPixels")
-            }
-        })
+    fun startHolderAnimation(position: Int) {
+        val rvField = vp::class.java.getDeclaredField("mRecyclerView")
+        rvField.isAccessible = true
+        val recyclerView = rvField.get(vp) as RecyclerView
+        val holder =
+            recyclerView.findViewHolderForAdapterPosition(position)
+        (holder as ItemPageViewHolder).onPageSelected()
     }
 
     fun openOrCloseViewPager(toOpen: Boolean) {
@@ -109,5 +120,53 @@ class MainActivity : AppCompatActivity() {
             })
             animator.start()
         }
+    }
+
+    override fun onFirstDragging() {
+        openOrCloseViewPager(false)
+    }
+
+    override fun onPageChange(position: Int) {
+        notifyPageChanged(position)
+    }
+}
+
+interface PageSelectListener {
+    fun onPageSelect(position: Int)
+}
+
+interface PageChangeListener {
+    fun onFirstDragging()
+    fun onPageChange(position: Int)
+}
+
+class OnPageChangeListener(private val pageChangeListener: PageChangeListener):
+    ViewPager2.OnPageChangeCallback() {
+    private var isDragging = false
+    private var isFirstPage = false
+    private val pageSelectListeners = mutableListOf<PageSelectListener>()
+    override fun onPageScrollStateChanged(state: Int) {
+        isDragging = ViewPager2.SCROLL_STATE_DRAGGING == state
+    }
+
+    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+        if (isFirstPage && isDragging && positionOffsetPixels == 0) {
+            pageChangeListener.onFirstDragging()
+        }
+    }
+
+    override fun onPageSelected(position: Int) {
+        isFirstPage = position == 0
+        pageChangeListener.onPageChange(position)
+        pageSelectListeners.forEach{
+            it.onPageSelect(position)
+        }
+    }
+
+    public fun addPageSelectListener(pageSelectListener: PageSelectListener) {
+        pageSelectListeners.add(pageSelectListener)
+    }
+    public fun removePageSelectListener(pageSelectListener: PageSelectListener) {
+        pageSelectListeners.remove(pageSelectListener)
     }
 }
