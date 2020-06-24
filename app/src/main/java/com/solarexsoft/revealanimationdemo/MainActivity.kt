@@ -1,6 +1,7 @@
 package com.solarexsoft.revealanimationdemo
 
 import android.animation.Animator
+import android.animation.ValueAnimator
 import android.graphics.Point
 import android.os.Bundle
 import android.util.Log
@@ -21,11 +22,13 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
     lateinit var fab: FloatingActionButton
     lateinit var vp: ViewPager2
     lateinit var adapter: ItemPagerAdapter
+    lateinit var indicator: PersonalizeLearningPagerIndicator
     var lastPosition = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         vp = findViewById<ViewPager2>(R.id.vp_main)
+        indicator = findViewById(R.id.indicator)
         fab = findViewById(R.id.fab)
         fab.setOnClickListener {
             openOrCloseViewPager(toOpen)
@@ -53,21 +56,15 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         vp.adapter = adapter
         vp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         vp.offscreenPageLimit = 3
+        indicator.total = 3
     }
 
     private fun notifyPageChanged(position: Int) {
+        indicator.progress = position
         if (lastPosition != position) {
             Log.d(TAG, "last position = $lastPosition")
             lastPosition = position
         }
-    }
-
-    fun startHolderAnimation(position: Int) {
-        val rvField = vp::class.java.getDeclaredField("mRecyclerView")
-        rvField.isAccessible = true
-        val recyclerView = rvField.get(vp) as RecyclerView
-        val holder =
-            recyclerView.findViewHolderForAdapterPosition(position)
     }
 
     fun openOrCloseViewPager(toOpen: Boolean) {
@@ -162,10 +159,10 @@ class OnPageChangeListener(private val pageChangeListener: PageChangeListener):
         }
     }
 
-    public fun addPageSelectListener(pageSelectListener: PageSelectListener) {
+    fun addPageSelectListener(pageSelectListener: PageSelectListener) {
         pageSelectListeners.add(pageSelectListener)
     }
-    public fun removePageSelectListener(pageSelectListener: PageSelectListener) {
+    fun removePageSelectListener(pageSelectListener: PageSelectListener) {
         pageSelectListeners.remove(pageSelectListener)
     }
 }
