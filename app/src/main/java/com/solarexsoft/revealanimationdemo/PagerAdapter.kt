@@ -1,15 +1,15 @@
 package com.solarexsoft.revealanimationdemo
 
+import android.annotation.SuppressLint
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.view.View.OnTouchListener
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Guideline
 import androidx.recyclerview.widget.RecyclerView
+import java.util.*
 
 /**
  * Created by houruhou on 2020/6/15/3:50 PM
@@ -25,6 +25,7 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
     init {
         Log.d(TAG, "view = $itemView")
     }
+    @SuppressLint("ClickableViewAccessibility")
     fun bindData(position: Int) {
         val container = itemView as ConstraintLayout
         for (i in 0..4) {
@@ -49,6 +50,22 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
             questionViews.add(textView)
             textView.setBackgroundResource(R.drawable.round_ffffff_12dp_radius)
             container.addView(textView, layoutParams)
+            textView.setOnTouchListener { v, event ->
+                if (event.actionMasked == MotionEvent.ACTION_UP) {
+                    startSlideDownAnim()
+                }
+                true
+            }
+        }
+    }
+
+    private fun startSlideDownAnim() {
+        questionViews.reverse()
+        questionViews.forEachIndexed { index, view ->
+            val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.up_bottom)
+            animation.startOffset = (index * 100).toLong()
+            animation.fillAfter = true
+            view.startAnimation(animation)
         }
     }
 
