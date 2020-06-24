@@ -1,19 +1,24 @@
 package com.solarexsoft.revealanimationdemo
 
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.Guideline
 import androidx.recyclerview.widget.RecyclerView
 
 /**
  * Created by houruhou on 2020/6/15/3:50 PM
  * Desc:
  */
-open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), PageSelectListener {
-
+open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), PageSelectListener, OnViewPagerVisibilityChangeListener {
+    val ids = arrayOf(R.id.practice_question0, R.id.practice_question1, R.id.practice_question2, R.id.practice_question3, R.id.practice_question4, R.id.practice_question5)
+    val questionViews = mutableListOf<TextView>()
+    var pageSelected = false
     companion object {
         const val TAG = "ItemPageViewHolder"
     }
@@ -21,23 +26,63 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
         Log.d(TAG, "view = $itemView")
     }
     fun bindData(position: Int) {
-        Log.d(TAG, "bindData position = $position")
-        val tv = view.findViewById<TextView>(R.id.tv)
-        tv.text = "$position"
-        AnimationUtils.loadAnimation(view.context, R.anim.bottom_up).apply {
-            duration = 500
-            tv.startAnimation(this)
+        val container = itemView as ConstraintLayout
+        for (i in 0..4) {
+            val textView = TextView(container.context)
+            textView.id = ids[i]
+            val layoutParams = ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.MATCH_CONSTRAINT,
+                56f.dp.toInt()
+            )
+            layoutParams.marginStart = 24f.dp.toInt()
+            layoutParams.marginEnd = 24f.dp.toInt()
+            layoutParams.startToStart = R.id.container
+            layoutParams.endToEnd = R.id.container
+            if (i == 0){
+                layoutParams.topToBottom = R.id.guideLine
+            } else {
+                layoutParams.topToBottom = ids[i - 1]
+                layoutParams.topMargin = 12f.dp.toInt()
+            }
+            textView.gravity = Gravity.CENTER
+            textView.text = "$i"
+            questionViews.add(textView)
+            textView.setBackgroundResource(R.drawable.round_ffffff_12dp_radius)
+            container.addView(textView, layoutParams)
         }
     }
 
     override fun onPageSelect(position: Int) {
         onSelected(position == adapterPosition)
     }
-    open fun onSelected(isSelect: Boolean) = Unit
+    open fun onSelected(isSelect: Boolean) {
+        pageSelected = isSelect
+        if (isSelect) {
+            val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.bottom_up)
+            questionViews.forEach {
+                it.startAnimation(animation)
+            }
+        }
+    }
+
+    override fun onViewPagerVisibilityChange(isVisible: Boolean) {
+        if (!isVisible) {
+            itemView.visibility = View.INVISIBLE
+        } else {
+            itemView.visibility = View.VISIBLE
+            if (pageSelected) {
+                val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.bottom_up)
+                questionViews.forEach {
+                    it.startAnimation(animation)
+                }
+            }
+        }
+    }
 }
 
 class ItemPagerAdapter(
-    private val onPageChange: OnPageChangeListener
+    private val onPageChange: OnPageChangeListener,
+    private val viewPagerVisibilityChangeListeners: MutableList<OnViewPagerVisibilityChangeListener>
 ): RecyclerView.Adapter<ItemPageViewHolder>() {
     companion object {
         const val TAG = "ItemPagerAdapter"
@@ -53,6 +98,7 @@ class ItemPagerAdapter(
     override fun onBindViewHolder(holder: ItemPageViewHolder, position: Int) {
         holder.bindData(position)
         onPageChange.addPageSelectListener(holder)
+        viewPagerVisibilityChangeListeners.add(holder)
     }
 
     override fun onViewAttachedToWindow(holder: ItemPageViewHolder) {
@@ -68,5 +114,6 @@ class ItemPagerAdapter(
     override fun onViewRecycled(holder: ItemPageViewHolder) {
         super.onViewRecycled(holder)
         onPageChange.removePageSelectListener(holder)
+        viewPagerVisibilityChangeListeners.remove(holder)
     }
 }

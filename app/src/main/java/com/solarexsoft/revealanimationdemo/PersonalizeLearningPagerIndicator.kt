@@ -46,8 +46,8 @@ class PersonalizeLearningPagerIndicator @JvmOverloads constructor(
     var grayEnd = 0f
     var whiteStart = 0f
     var whiteEnd = 0f
-    lateinit var grayPaint: Paint
-    lateinit var whitePaint: Paint
+    var grayPaint: Paint
+    var whitePaint: Paint
 
     init {
         whiteColor = context?.resources?.getColor(android.R.color.white) ?: 0

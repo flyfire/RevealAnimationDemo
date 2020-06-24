@@ -1,6 +1,7 @@
 package com.solarexsoft.revealanimationdemo
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.graphics.Point
 import android.os.Bundle
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
     lateinit var adapter: ItemPagerAdapter
     lateinit var indicator: PersonalizeLearningPagerIndicator
     var lastPosition = 0
+    val viewPagerVisibilityChangeListeners = mutableListOf<OnViewPagerVisibilityChangeListener>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         })
         val pageChangeCallback = OnPageChangeListener(this)
         vp.registerOnPageChangeCallback(pageChangeCallback)
-        adapter = ItemPagerAdapter(pageChangeCallback)
+        adapter = ItemPagerAdapter(pageChangeCallback, viewPagerVisibilityChangeListeners)
         vp.adapter = adapter
         vp.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         vp.offscreenPageLimit = 3
@@ -67,6 +69,12 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         }
     }
 
+    fun notifyViewPagerVisibilityChange(isVisible: Boolean) {
+        viewPagerVisibilityChangeListeners.forEach {
+            it.onViewPagerVisibilityChange(isVisible)
+        }
+    }
+
     fun openOrCloseViewPager(toOpen: Boolean) {
         val centerX = fab.x + fab.width/2;
         val centerY = fab.y + fab.height/2;
@@ -76,22 +84,12 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         val height = point.y/2
         val hypot = hypot(width.toDouble(), height.toDouble())
         if (toOpen) {
+            notifyViewPagerVisibilityChange(false)
             val animator = ViewAnimationUtils.createCircularReveal(vp, centerX.toInt(), centerY.toInt(), 0.0f, hypot.toFloat())
-            animator.addListener(object : Animator.AnimatorListener{
-                override fun onAnimationRepeat(animation: Animator?) {
-                }
-
+            animator.addListener(object : AnimatorListenerAdapter(){
                 override fun onAnimationEnd(animation: Animator?) {
-                    Log.d(TAG, "onAnimationEnd called")
-                    adapter.notifyItemChanged(vp.currentItem)
+                    notifyViewPagerVisibilityChange(true)
                 }
-
-                override fun onAnimationCancel(animation: Animator?) {
-                }
-
-                override fun onAnimationStart(animation: Animator?) {
-                }
-
             })
             animator.duration = 1000
             vp.visibility = View.VISIBLE
@@ -138,6 +136,9 @@ interface PageChangeListener {
 
 class OnPageChangeListener(private val pageChangeListener: PageChangeListener):
     ViewPager2.OnPageChangeCallback() {
+    companion object {
+        const val TAG = "OnPageChangeListener"
+    }
     private var isDragging = false
     private var isFirstPage = false
     private val pageSelectListeners = mutableListOf<PageSelectListener>()
@@ -152,6 +153,7 @@ class OnPageChangeListener(private val pageChangeListener: PageChangeListener):
     }
 
     override fun onPageSelected(position: Int) {
+        Log.d(TAG, "onPageSelected $position")
         isFirstPage = position == 0
         pageChangeListener.onPageChange(position)
         pageSelectListeners.forEach{
@@ -165,4 +167,8 @@ class OnPageChangeListener(private val pageChangeListener: PageChangeListener):
     fun removePageSelectListener(pageSelectListener: PageSelectListener) {
         pageSelectListeners.remove(pageSelectListener)
     }
+}
+
+interface OnViewPagerVisibilityChangeListener {
+    fun onViewPagerVisibilityChange(isVisible: Boolean)
 }
