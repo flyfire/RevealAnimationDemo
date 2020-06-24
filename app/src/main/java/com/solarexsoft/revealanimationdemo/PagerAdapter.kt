@@ -1,9 +1,11 @@
 package com.solarexsoft.revealanimationdemo
 
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.util.Log
 import android.view.*
 import android.view.View.OnTouchListener
+import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -60,11 +62,23 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
     }
 
     private fun startSlideDownAnim() {
-        questionViews.reverse()
+        val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.up_bottom)
+        animation.fillAfter = true
+        animation.setAnimationListener(object :Animation.AnimationListener{
+            override fun onAnimationRepeat(animation: Animation?) {
+
+            }
+
+            override fun onAnimationEnd(animation: Animation?) {
+                Log.d(TAG, "onAnimationEnd")
+            }
+
+            override fun onAnimationStart(animation: Animation?) {
+
+            }
+
+        })
         questionViews.forEachIndexed { index, view ->
-            val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.up_bottom)
-            animation.startOffset = (index * 100).toLong()
-            animation.fillAfter = true
             view.startAnimation(animation)
         }
     }
