@@ -84,11 +84,11 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         val height = point.y/2
         val hypot = hypot(width.toDouble(), height.toDouble())
         if (toOpen) {
-            notifyViewPagerVisibilityChange(false)
+//            notifyViewPagerVisibilityChange(false)
             val animator = ViewAnimationUtils.createCircularReveal(vp, centerX.toInt(), centerY.toInt(), 0.0f, hypot.toFloat())
             animator.addListener(object : AnimatorListenerAdapter(){
                 override fun onAnimationEnd(animation: Animator?) {
-                    notifyViewPagerVisibilityChange(true)
+//                    notifyViewPagerVisibilityChange(true)
                 }
             })
             animator.duration = 1000

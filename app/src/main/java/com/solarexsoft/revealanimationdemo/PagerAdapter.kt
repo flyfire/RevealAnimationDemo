@@ -89,14 +89,18 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
     open fun onSelected(isSelect: Boolean) {
         pageSelected = isSelect
         if (isSelect) {
-            val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.bottom_up)
+//            val animation = AnimationUtils.loadAnimation(itemView.context, R.anim.bottom_up)
+//            questionViews.forEach {
+//                it.startAnimation(animation)
+//            }
             questionViews.forEach {
-                it.startAnimation(animation)
+                it.clearAnimation()
             }
         }
     }
 
     override fun onViewPagerVisibilityChange(isVisible: Boolean) {
+        /*
         if (!isVisible) {
             itemView.visibility = View.INVISIBLE
         } else {
@@ -107,7 +111,7 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
                     it.startAnimation(animation)
                 }
             }
-        }
+        }*/
     }
 }
 
