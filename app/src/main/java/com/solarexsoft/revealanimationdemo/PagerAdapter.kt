@@ -9,6 +9,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.constraintlayout.widget.Guideline
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
@@ -30,6 +31,8 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
     @SuppressLint("ClickableViewAccessibility")
     fun bindData(position: Int) {
         val container = itemView as ConstraintLayout
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(container)
         for (i in 0..4) {
             val textView = TextView(container.context)
             textView.id = ids[i]
@@ -41,17 +44,23 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
             layoutParams.marginEnd = 24f.dp.toInt()
             layoutParams.startToStart = R.id.container
             layoutParams.endToEnd = R.id.container
+            constraintSet.connect(ids[i], ConstraintSet.START, R.id.container, ConstraintSet.START, 24f.dp.toInt())
+            constraintSet.connect(ids[i], ConstraintSet.END, R.id.container, ConstraintSet.END, 24f.dp.toInt())
             if (i == 0){
                 layoutParams.topToBottom = R.id.guideLine
+                constraintSet.connect(ids[i], ConstraintSet.TOP, R.id.guideLine, ConstraintSet.BOTTOM, 0)
             } else {
                 layoutParams.topToBottom = ids[i - 1]
                 layoutParams.topMargin = 12f.dp.toInt()
+                constraintSet.connect(ids[i], ConstraintSet.TOP, ids[i-1], ConstraintSet.BOTTOM, 12f.dp.toInt())
             }
+            constraintSet.constrainHeight(ids[i], 56f.dp.toInt())
+            constraintSet.constrainWidth(ids[i], ConstraintSet.MATCH_CONSTRAINT)
             textView.gravity = Gravity.CENTER
             textView.text = "$i"
             questionViews.add(textView)
             textView.setBackgroundResource(R.drawable.round_ffffff_12dp_radius)
-            container.addView(textView, layoutParams)
+            container.addView(textView)
             textView.setOnTouchListener { v, event ->
                 if (event.actionMasked == MotionEvent.ACTION_UP) {
                     startSlideDownAnim()
@@ -59,6 +68,7 @@ open class ItemPageViewHolder(val view: View): RecyclerView.ViewHolder(view), Pa
                 true
             }
         }
+        constraintSet.applyTo(container)
     }
 
     private fun startSlideDownAnim() {
