@@ -33,8 +33,9 @@ class MainActivity : AppCompatActivity(), PageChangeListener {
         indicator = findViewById(R.id.indicator)
         fab = findViewById(R.id.fab)
         fab.setOnClickListener {
-            openOrCloseViewPager(toOpen)
-            toOpen = !toOpen
+//            openOrCloseViewPager(toOpen)
+//            toOpen = !toOpen
+            VpNestedInVpActivity.start(this)
         }
 
         val rvField = vp::class.java.getDeclaredField("mRecyclerView")

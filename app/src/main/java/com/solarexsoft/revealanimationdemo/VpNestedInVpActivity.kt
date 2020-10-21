@@ -1,5 +1,7 @@
 package com.solarexsoft.revealanimationdemo
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,12 +17,20 @@ import kotlinx.android.synthetic.main.item_nested_vp.view.*
  * Desc:
  */
 class VpNestedInVpActivity : AppCompatActivity(), PageChangeListener {
+
+    companion object {
+        fun start(context: Context) {
+            val intent = Intent(context, VpNestedInVpActivity::class.java)
+            context.startActivity(intent)
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_vp_in_vp)
         vp_main.registerOnPageChangeCallback(OnPageChangeListener(this))
         vp_main.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         vp_main.adapter = NestedVpAdapter(10)
+        indicator.total = 10
     }
 
     override fun onFirstDragging() {
@@ -86,6 +96,22 @@ class NormalViewHolder(view: View): BaseViewHolder(view) {
 class NestedParentViewHolder(view: View): BaseViewHolder(view) {
     override fun bind() {
         itemView.vp_content.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-        itemView.vp_content.adapter = NestedVpAdapter(5)
+        itemView.vp_content.adapter = NestedChildAdapter(5)
     }
 }
+class NestedChildAdapter(private val count: Int): RecyclerView.Adapter<NestedChildViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NestedChildViewHolder {
+        return NestedChildViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_tv_nested, parent, false))
+    }
+
+    override fun onBindViewHolder(holder: NestedChildViewHolder, position: Int) {
+
+    }
+
+    override fun getItemCount(): Int {
+        return count
+    }
+
+}
+
+class NestedChildViewHolder(view: View): RecyclerView.ViewHolder(view)
